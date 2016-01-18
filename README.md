@@ -1,6 +1,6 @@
 # NetVLAD: CNN architecture for weakly supervised place recognition
 
-> Version 1.00 (04 Dec 2015)
+> Version 1.01 (29 Feb 2016)
 
 This code implements the NetVLAD layer and the weakly supervised training for place recognition presented in [1]. For the link to the paper, trained models and other data, see our project page:
 http://www.di.ens.fr/willow/research/netvlad/
@@ -13,10 +13,10 @@ NetVLAD is distributed under the MIT License (see the `LICENCE` file).
 
 The code is written in MATLAB, and depends on the following libraries:
 
-1. [relja_matlab](https://github.com/Relja/relja_matlab)
-2. [MatConvNet](http://www.vlfeat.org/matconvnet/) (tested using version 1.0-beta14)
-3. Optional but **highly** recommended for speed: [Yael_matlab](http://yael.gforge.inria.fr/index.html) (tested using version 438)
-        - To download it's easiest to go [here](http://yael.gforge.inria.fr/index.html) and download the precompiled yael_matlab binaries for your OS (e.g. [yael_matlab_linux64_v438.tar.gz](https://gforge.inria.fr/frs/download.php/file/34218/yael_matlab_linux64_v438.tar.gz))
+1. [relja_matlab](https://github.com/Relja/relja_matlab) v1.01 or above
+2. [MatConvNet](http://www.vlfeat.org/matconvnet/) (tested using version 1.0-beta14, do not use version 1.0-beta17 and above as it is not backward compatible -- we will soon address this issue)
+3. Optional but **highly** recommended for speed: [Yael_matlab](http://yael.gforge.inria.fr/index.html) (tested using version 438), and not used for feature extraction (i.e. the feed forward pass)
+    - To download it's easiest to go [here](http://yael.gforge.inria.fr/index.html) and download the precompiled yael_matlab binaries for your OS (e.g. [yael_matlab_linux64_v438.tar.gz](https://gforge.inria.fr/frs/download.php/file/34218/yael_matlab_linux64_v438.tar.gz))
 
 ## Data
 
@@ -42,7 +42,7 @@ Copy `localPaths.m.setup` into `localPaths.m` and edit the variables to point to
 
 See `demo.m` for examples on how to train and test the networks, as explained below. We use Tokyo as a runnning example, but all is analogous if you use Pittsburgh (just change the dataset setup and use the appropriate networks).
 
-The code samples below use the GPU by default, if you want to use the CPU instead (very slow especially for training!), add `'useGPU', true` to the affected function calls (`trainWeakly`, `addPCA`, `serialAllFeats`).
+The code samples below use the GPU by default, if you want to use the CPU instead (very slow especially for training!), add `'useGPU', false` to the affected function calls (`trainWeakly`, `addPCA`, `serialAllFeats`, `computeRepresentation`).
 
 Note that if something fails (e.g. you are missing a dependency, your GPU runs out of RAM, you manually stop execution, etc), you should make sure to delete the potentially created corrupt files before rerunning the code. E.g. if you terminate feature extraction, the output file will be incomplete, so trying to perform testing will fail (files are never recomputed if they exist).
 
@@ -60,7 +60,12 @@ Load our network:
     paths= localPaths();
     load( sprintf('%s%s.mat', paths.ourCNNs, netID), 'net' );
 
-Compute the image representation(s) by simply running the forward pass using the network `net` on the appropriately normalized input image(s) (see `serialAllFeats.m`). We also provide a utility function which does it all for you:
+Compute the image representation by simply running the forward pass using the network `net` on the appropriately normalized image (see `computeRepresentation.m`).
+
+    im= vl_imreadjpeg({which('football.jpg')}); im= im{1}; % slightly convoluted because we need the full image path for `vl_imreadjpeg`, while `imread` is not appropriate - see `help computeRepresentation`
+    feats= computeRepresentation(net, im); % add `'useGPU', false` if you want to use the CPU
+
+To compute representations for many images, use the `serialAllFeats` function which is much faster as it uses batches and it moves the network to the GPU only once:
 
     serialAllFeats(net, imPath, imageFns, outputFn);
 
@@ -85,6 +90,12 @@ Measure recall@N
 
     [recall, ~, ~, opts]= testFromFn(dbTest, dbFeatFn, qFeatFn);
     plot(opts.recallNs, recall, 'ro-'); grid on; xlabel('N'); ylabel('Recall@N'); title(netID, 'Interpreter', 'none');
+
+To test smaller dimensionalities, all that needs to be done (only valid for NetVLAD+whitening networks!) is to keep the first D dimensions and L2-normalize. This is done automatically in `testFromFn` using the `cropToDim` option:
+
+    recall= testFromFn(dbTest, dbFeatFn, qFeatFn, [], 'cropToDim', 256);
+
+It is also very easy to test our trained networks on the standard object/image retrieval benchmarks, using the same set of steps: load the network, construct the database, compute the features, run the evaluation. See `demoRetrieval.m` for details.
 
 ### Train
 
@@ -141,4 +152,10 @@ More information is available `README_more.md` and in comments in the code itsel
 
 # Changes
 
-- **1.00** Initial public release
+- **1.01** (29 Feb 2016)
+    - Easier quick-start with `computeRepresentation`
+    - Standard retrieval benchmarks (Oxford, Paris, Holidays) in `demoRetrieval.m`
+    - Additional examples in `demo.m`: dimensionality reduction with NetVLAD, construction of off-the-shelf-networks
+
+- **1.00** (04 Dec 2015)
+    - Initial public release

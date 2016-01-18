@@ -41,9 +41,10 @@ classdef layerVLAD
             
             % --- aggregate
             
-            y= zeros([1, l.K, l.D, batchSize], 'single');
             if isa(x, 'gpuArray')
-                y= gpuArray(y);
+                y= zeros([1, l.K, l.D, batchSize], 'single', 'gpuArray');
+            else
+                y= zeros([1, l.K, l.D, batchSize], 'single');
             end
             
             for iK= 1:l.K

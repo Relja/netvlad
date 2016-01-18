@@ -3,7 +3,7 @@
 % This file contains a few examples of how to train and test CNNs for place recognition, refer to README.md for setup instructions, and to our project page for all relevant information (e.g. our paper): http://www.di.ens.fr/willow/research/netvlad/
 
 
-%  The code samples use the GPU by default, if you want to use the CPU instead (very slow especially for training!), add `'useGPU', true` to the affected function calls (trainWeakly, addPCA, serialAllFeats)
+%  The code samples use the GPU by default, if you want to use the CPU instead (very slow especially for training!), add `'useGPU', false` to the affected function calls (trainWeakly, addPCA, serialAllFeats, computeRepresentation)
 
 % For a tiny example of running the training on a small dataset, which takes only a few minutes to run, refer to the end of this file.
 
@@ -11,6 +11,8 @@
 
 % Set the MATLAB paths
 setup;
+
+error('Don''t run this script, it is only meant as a collection of useful commands');
 
 
 
@@ -21,10 +23,16 @@ netID= 'vd16_tokyoTM_conv5_3_vlad_preL2_intra_white';
 paths= localPaths();
 load( sprintf('%s%s.mat', paths.ourCNNs, netID), 'net' );
 
-% Compute the image representation(s) by simply running the forward pass
-% using the network `net` on the appropriately normalized input image(s)
-% (see `serialAllFeats.m`). We also provide a utility function which does
-% it all for you:
+%  Compute the image representation by simply running the forward pass using
+% the network `net` on the appropriately normalized image
+% (see `computeRepresentation.m`).
+
+im= vl_imreadjpeg({which('football.jpg')}); im= im{1}; % slightly convoluted because we need the full image path for `vl_imreadjpeg`, while `imread` is not appropriate - see `help computeRepresentation`
+feats= computeRepresentation(net, im); % add `'useGPU', false` if you want to use the CPU
+
+% To compute representations for many images, use the `serialAllFeats` function
+% which is much faster as it uses batches and it moves the network to
+% the GPU only once:
 %
 %          serialAllFeats(net, imPath, imageFns, outputFn);
 %
@@ -77,8 +85,8 @@ dbTest= dbTokyo247();
 
 % Set the output filenames for the database/query image representations
 paths= localPaths();
-dbFeatFn= sprintf('%s%s_ep%06d_%s_db.bin', paths.outPrefix, bestNet.sessionID, bestNet.bestEpoch, dbTest.name);
-qFeatFn = sprintf('%s%s_ep%06d_%s_q.bin', paths.outPrefix, bestNet.sessionID, bestNet.bestEpoch, dbTest.name);
+dbFeatFn= sprintf('%s%s_ep%06d_%s_db.bin', paths.outPrefix, finalNet.sessionID, finalNet.epoch, dbTest.name);
+qFeatFn = sprintf('%s%s_ep%06d_%s_q.bin', paths.outPrefix, finalNet.sessionID, finalNet.epoch, dbTest.name);
 
 % Compute db/query image representations
 serialAllFeats(finalNet, dbTest.dbPath, dbTest.dbImageFns, dbFeatFn, 'batchSize', 10); % adjust batchSize depending on your GPU / network size
@@ -87,6 +95,32 @@ serialAllFeats(finalNet, dbTest.qPath, dbTest.qImageFns, qFeatFn, 'batchSize', 1
 % Measure recall@N
 [recall, ~, ~, opts]= testFromFn(dbTest, dbFeatFn, qFeatFn);
 plot(opts.recallNs, recall, 'ro-'); grid on; xlabel('N'); ylabel('Recall@N');
+
+% --- Test smaller dimensionalities:
+
+% All that needs to be done (only valid for NetVLAD+whitening networks!)
+% to reduce the dimensionality of the NetVLAD representation below 4096 to D
+% is to keep the first D dimensions and L2-normalize.
+% This is done automatically in `testFromFn` using the `cropToDim` option:
+
+cropToDims= [64, 128, 256, 512, 1024, 2048, 4096];
+recalls= [];
+plotN= 5;
+figure;
+
+for iCropToDim= 1:length(cropToDims)
+    cropToDim= cropToDims(iCropToDim);
+    relja_display('D= %d', cropToDim);
+    [recall, ~, ~, opts]= testFromFn(dbTest, dbFeatFn, qFeatFn, [], 'cropToDim', cropToDim);
+    
+    whichRecall= find(opts.recallNs==plotN);
+    recalls= [recalls, recall(whichRecall)];
+    hold off;
+    semilogx( cropToDims(1:iCropToDim), recalls, 'bo-');
+    set(gca, 'XTick', cropToDims(1:iCropToDim));
+    xlabel('Number of dimensions'); ylabel(sprintf('Recall@%d', plotN)); grid on;
+    drawnow;
+end
 
 
 
@@ -97,10 +131,10 @@ doPitts250k= false;
 
 if doPitts250k
     % Pittsburgh 250k
-    lr= 0.001;
+    lr= 0.0001;
 else
     % Pittsburgh 30k
-    lr= 0.0001;
+    lr= 0.001;
 end
 
 dbTrain= dbPitts(doPitts250k, 'train');
@@ -112,7 +146,8 @@ dbTest= dbPitts(doPitts250k, 'test');
 
 
 % ---------- Miscellaneous
-% Other potentially useful
+
+% --- Other potentially useful commands for training
 
 % caffe vlad: backprop down to conv2
 
@@ -129,6 +164,16 @@ sessionID= trainWeakly(dbTrain, dbVal, ...
     'method', 'max', ...
     'learningRate', lr, ...
     'doDraw', true);
+
+% --- Constructing an off-the-shelf network:
+
+dbTrain= dbPitts(false, 'train'); % or dbTokyoTimeMachine('train');
+opts.netID= 'vd16'; % or 'caffe'
+opts.layerName= 'conv5_3'; % or whatever layer you want, for caffe: 'conv5'
+opts.method= 'vlad_preL2_intra'; % or 'max', 'avg'
+net= loadNet(opts.netID, opts.layerName); % load the network and crop at desired layer
+net= addLayers(net, opts, dbTrain); % add the NetVLAD/Max/Avg layer
+net= addPCA(net, dbTrain, 'doWhite', true, 'pcaDim', 4096, 'batchSize', 10); % add whitening (for non-vlad methods pick a smaller pcaDim value)
 
 
 

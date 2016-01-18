@@ -1,9 +1,23 @@
+%  Uses the network `net` to extract image representations from a list
+%  of image filenames `imageFns`.
+%  `imageFns` is a cell array containing image file names relative
+%  to the `imPath` (i.e. `[imPath, imageFns{i}]` is a valid JPEG image).
+%  The representations are saved to `outFn` (single 4-byte floats).
+%
+%  Additional options:
+%
+%  `useGPU': Use the GPU or not
+%
+%  `batchSize': The number of images to process in a batch. Note that if your
+%       input images are not all of same size (they are in place recognition
+%       datasets), you should set `batchSize` to 1.
+
 function serialAllFeats(net, imPath, imageFns, outFn, varargin)
     
     opts= struct(...
         'useGPU', true, ...
         'numThreads', 12, ...
-        'batchSize', 100 ...
+        'batchSize', 10 ...
         );
     opts= vl_argparse(opts, varargin);
     simpleNnOpts= {'conserveMemory', true, 'disableDropout', true};

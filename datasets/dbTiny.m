@@ -11,6 +11,7 @@ classdef dbTiny < dbBase
                 db.(propName{1})= db_.(propName{1});
             end
             clear db_;
+            db.name= sprintf('tokyoTinyTM_%s', whichSet);
             
             % construct a tiny dataset
             rng(43);

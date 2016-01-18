@@ -18,17 +18,13 @@ end
 
 
 function is= isFieldOrProp(l, propName)
-    if strcmp(l.type, 'custom')
-        is= isprop(l, propName);
-    else
-        is= isfield(l, propName);
-    end
+    is= isprop(l, propName) || isfield(l, propName);
 end
 
 
 
 function should= shouldAdd(l, propName)
-    if strcmp(l.type, 'custom')
+    if ~isa(l, 'struct')
         assert(isprop(l, propName));
         should= isempty(l.(propName));
     else
