@@ -88,9 +88,6 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
         % --- Add my layers
         net= addLayers(net, opts, dbTrain);
         
-        % --- Prepare for train
-        net= netPrepareForTrain(net);
-        
         % --- BackProp depth
         if isempty(opts.backPropToLayer)
             opts.backPropToLayer= 1;
@@ -105,6 +102,9 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
         assert( all(ismember(opts.fixLayers, relja_layerNames(net))) );
         
         display(opts);
+        
+        % --- Prepare for train
+        net= netPrepareForTrain(net, opts.backPropToLayer);
         
         
         
@@ -322,9 +322,9 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
                 end
                 ims= cat(4, ims_{:});
                 
-                ims(:,:,1,:)= ims(:,:,1,:) - net.normalization.averageImage(1,1,1);
-                ims(:,:,2,:)= ims(:,:,2,:) - net.normalization.averageImage(1,1,2);
-                ims(:,:,3,:)= ims(:,:,3,:) - net.normalization.averageImage(1,1,3);
+                ims(:,:,1,:)= ims(:,:,1,:) - net.meta.normalization.averageImage(1,1,1);
+                ims(:,:,2,:)= ims(:,:,2,:) - net.meta.normalization.averageImage(1,1,2);
+                ims(:,:,3,:)= ims(:,:,3,:) - net.meta.normalization.averageImage(1,1,3);
                 
                 if opts.useGPU
                     ims= gpuArray(ims);
@@ -334,10 +334,8 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
                 
                 % ---------- forward
                 
-                res= relja_simplenn(net, ims, [], [], ...
-                        'backPropDepth', opts.backPropDepth, ... % just for memory
-                        'conserveMemoryDepth', true, ...
-                        'conserveMemory', false);
+                res= vl_simplenn(net, ims, [], [], 'mode', 'normal', 'conserveMemory', true); % the memory saving related to backPropDepth is obayed implicitly due to running netPrepareForTrain before, see the comments in the function for an explanation
+                if opts.backPropToLayer==1, res(1).x= ims; end % because of the 'conserveMemory' the input is deleted, restore it if needed
                 ims= [];
                 feats= reshape( gather(res(end).x), [], thisNumIms );
                 
@@ -391,11 +389,10 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
                 
                 % ---------- backward pass
                 allRes= [allRes; ...
-                    relja_simplenn(net, ims, dzdy, res, ...
+                    vl_simplenn(net, ims, dzdy, res, ...
+                        'mode', 'normal', ...
                         'skipForward', true, ...
                         'backPropDepth', opts.backPropDepth, ...
-                        'freezeDropout', true, ...
-                        'conserveMemoryDepth', true, ...
                         'conserveMemory', true)];
                 numTriplets= [numTriplets, nViolatingNegs];
                 

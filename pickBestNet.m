@@ -59,8 +59,8 @@ function [bestEpoch, bestNet]= pickBestNet(sessionID, N, verbose)
         outFnBest= sprintf('%s%s_ep%06d_latest.mat', paths.outPrefix, sessionID, bestEpoch);
         load(outFnBest, 'net');
         bestNet= net; clear net;
-        bestNet.sessionID= sessionID;
-        bestNet.epoch= bestEpoch;
+        bestNet.meta.sessionID= sessionID;
+        bestNet.meta.epoch= bestEpoch;
         
         % remove unneeded momentum
         for iLayer= 1:length(bestNet.layers)

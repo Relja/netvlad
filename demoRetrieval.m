@@ -18,6 +18,7 @@ setup;
 netID= 'vd16_pitts30k_conv5_3_vlad_preL2_intra_white';
 paths= localPaths();
 load( sprintf('%s%s.mat', paths.ourCNNs, netID), 'net' );
+net= relja_simplenn_tidy(net);
 
 
 

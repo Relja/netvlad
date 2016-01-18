@@ -3,6 +3,7 @@ classdef layerTotalMaxPool < handle
     properties
         type= 'custom'
         name= 'maxTotal'
+        precious= false
     end
     
     methods

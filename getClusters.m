@@ -4,6 +4,8 @@ function clsts= getClusters(net, opts, clstFn, k, dbTrain, trainDescFn)
         
         if ~exist(trainDescFn, 'file')
             
+            simpleNnOpts= {'conserveMemory', true, 'mode', 'test'};
+            
             if opts.useGPU
                 net= relja_simplenn_move(net, 'gpu');
             end
@@ -38,15 +40,15 @@ function clsts= getClusters(net, opts, clstFn, k, dbTrain, trainDescFn)
                     im= cat(3,im,im,im);
                 end
                 
-                im(:,:,1)= im(:,:,1) - net.normalization.averageImage(1,1,1);
-                im(:,:,2)= im(:,:,2) - net.normalization.averageImage(1,1,2);
-                im(:,:,3)= im(:,:,3) - net.normalization.averageImage(1,1,3);
+                im(:,:,1)= im(:,:,1) - net.meta.normalization.averageImage(1,1,1);
+                im(:,:,2)= im(:,:,2) - net.meta.normalization.averageImage(1,1,2);
+                im(:,:,3)= im(:,:,3) - net.meta.normalization.averageImage(1,1,3);
                 
                 if opts.useGPU
                     im= gpuArray(im);
                 end
                 
-                res= vl_simplenn(net, im, [], [], 'conserveMemory', true);
+                res= vl_simplenn(net, im, [], [], simpleNnOpts{:});
                 descs= gather(res(end).x);
                 descs= reshape( descs, [], size(descs,3) )';
                 

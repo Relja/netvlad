@@ -10,6 +10,7 @@ classdef layerVLAD
         momentum
         learningRate
         weightDecay
+        precious= false
     end
     
     methods

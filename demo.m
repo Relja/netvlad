@@ -22,6 +22,7 @@ error('Don''t run this script, it is only meant as a collection of useful comman
 netID= 'vd16_tokyoTM_conv5_3_vlad_preL2_intra_white';
 paths= localPaths();
 load( sprintf('%s%s.mat', paths.ourCNNs, netID), 'net' );
+net= relja_simplenn_tidy(net);
 
 %  Compute the image representation by simply running the forward pass using
 % the network `net` on the appropriately normalized image
@@ -85,8 +86,8 @@ dbTest= dbTokyo247();
 
 % Set the output filenames for the database/query image representations
 paths= localPaths();
-dbFeatFn= sprintf('%s%s_ep%06d_%s_db.bin', paths.outPrefix, finalNet.sessionID, finalNet.epoch, dbTest.name);
-qFeatFn = sprintf('%s%s_ep%06d_%s_q.bin', paths.outPrefix, finalNet.sessionID, finalNet.epoch, dbTest.name);
+dbFeatFn= sprintf('%s%s_ep%06d_%s_db.bin', paths.outPrefix, finalNet.meta.sessionID, finalNet.meta.epoch, dbTest.name);
+qFeatFn = sprintf('%s%s_ep%06d_%s_q.bin', paths.outPrefix, finalNet.meta.sessionID, finalNet.meta.epoch, dbTest.name);
 
 % Compute db/query image representations
 serialAllFeats(finalNet, dbTest.dbPath, dbTest.dbImageFns, dbFeatFn, 'batchSize', 10); % adjust batchSize depending on your GPU / network size

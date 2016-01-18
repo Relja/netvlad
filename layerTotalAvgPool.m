@@ -3,6 +3,7 @@ classdef layerTotalAvgPool < handle
     properties
         type= 'custom'
         name= 'avgTotal'
+        precious= false
     end
     
     methods

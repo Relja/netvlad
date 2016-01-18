@@ -9,14 +9,14 @@ function net= addPCA(net, dbTrain, varargin)
         );
     opts= vl_argparse(opts, varargin);
     
-    if ~isfield(net, 'sessionID') || ~isfield(net, 'epoch')
+    if ~isfield(net.meta, 'sessionID') || ~isfield(net.meta, 'epoch')
         error('net should have a sessionID and epoch properties, I''m assuming you didn''t use the provided functions to create the networks? (loadNet, addLayers, pickBestNet)');
     end
     
     paths= localPaths();
     
-    trainDbFeatFn= sprintf('%s%s_ep%06d_traindescs_for_pca.bin', paths.outPrefix, net.sessionID, net.epoch);
-    pcaFn= sprintf('%s%s_ep%06d_pca.mat', paths.outPrefix, net.sessionID, net.epoch);
+    trainDbFeatFn= sprintf('%s%s_ep%06d_traindescs_for_pca.bin', paths.outPrefix, net.meta.sessionID, net.meta.epoch);
+    pcaFn= sprintf('%s%s_ep%06d_pca.mat', paths.outPrefix, net.meta.sessionID, net.meta.epoch);
     
     D= relja_netOutputDim(net);
     
@@ -24,7 +24,7 @@ function net= addPCA(net, dbTrain, varargin)
         relja_displayDateTime();
         
         if ~exist(trainDbFeatFn, 'file')
-            relja_display('%s Computing training vectors for PCA', net.sessionID);
+            relja_display('%s Computing training vectors for PCA', net.meta.sessionID);
             
             imageFns= dbTrain.dbImageFns;
             nTrain= length(imageFns);
@@ -39,7 +39,7 @@ function net= addPCA(net, dbTrain, varargin)
             clear nTrain;
         end
         
-        relja_display('%s Computing PCA', net.sessionID);
+        relja_display('%s Computing PCA', net.meta.sessionID);
         
         dbFeat= fread( fopen(trainDbFeatFn, 'rb'), [D, inf], 'float32=>single');
         
@@ -76,10 +76,10 @@ function net= addPCA(net, dbTrain, varargin)
     
     net.layers{end+1}= struct('type', 'conv', 'name', pcaStr, ...
         'weights', {{ reshape(U, [1,1,D,opts.pcaDim]), -Utmu }}, ...
-        'stride', 1, 'pad', 0);
+        'stride', 1, 'pad', 0, 'opts', {{}}, 'precious', false);
     
     % final normalization
     net.layers{end+1}= layerWholeL2Normalize('finalL2');
-    net.sessionID= sprintf('%s_%s', net.sessionID, pcaStr);
+    net.meta.sessionID= sprintf('%s_%s', net.meta.sessionID, pcaStr);
     
 end

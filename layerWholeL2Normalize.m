@@ -3,6 +3,7 @@ classdef layerWholeL2Normalize < handle
     properties
         type= 'custom'
         name= 'wholeL2'
+        precious= false
     end
     
     methods

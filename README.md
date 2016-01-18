@@ -1,6 +1,8 @@
 # NetVLAD: CNN architecture for weakly supervised place recognition
 
-> Version 1.01 (29 Feb 2016)
+> Version 1.02 (29 Feb 2016)
+>
+>- If you used NetVLAD v1.01 or below, you need to upgrade your models using `relja_simplenn_tidy`
 
 This code implements the NetVLAD layer and the weakly supervised training for place recognition presented in [1]. For the link to the paper, trained models and other data, see our project page:
 http://www.di.ens.fr/willow/research/netvlad/
@@ -13,8 +15,8 @@ NetVLAD is distributed under the MIT License (see the `LICENCE` file).
 
 The code is written in MATLAB, and depends on the following libraries:
 
-1. [relja_matlab](https://github.com/Relja/relja_matlab) v1.01 or above
-2. [MatConvNet](http://www.vlfeat.org/matconvnet/) (tested using version 1.0-beta14, do not use version 1.0-beta17 and above as it is not backward compatible -- we will soon address this issue)
+1. [relja_matlab](https://github.com/Relja/relja_matlab) v1.02 or above
+2. [MatConvNet](http://www.vlfeat.org/matconvnet/) (requires v1.0-beta18 or above)
 3. Optional but **highly** recommended for speed: [Yael_matlab](http://yael.gforge.inria.fr/index.html) (tested using version 438), and not used for feature extraction (i.e. the feed forward pass)
     - To download it's easiest to go [here](http://yael.gforge.inria.fr/index.html) and download the precompiled yael_matlab binaries for your OS (e.g. [yael_matlab_linux64_v438.tar.gz](https://gforge.inria.fr/frs/download.php/file/34218/yael_matlab_linux64_v438.tar.gz))
 
@@ -59,6 +61,7 @@ Load our network:
     netID= 'vd16_tokyoTM_conv5_3_vlad_preL2_intra_white';
     paths= localPaths();
     load( sprintf('%s%s.mat', paths.ourCNNs, netID), 'net' );
+    net= relja_simplenn_tidy(net); % potentially upgrate the network to the latest version of NetVLAD / MatConvNet
 
 Compute the image representation by simply running the forward pass using the network `net` on the appropriately normalized image (see `computeRepresentation.m`).
 
@@ -151,6 +154,10 @@ More information is available `README_more.md` and in comments in the code itsel
 
 
 # Changes
+
+- **1.02** (29 Feb 2016)
+    - Adapts the code to account for major changes in matconvnet-1.0-beta17's SimpleNN
+    - Removed the use of the redundant `relja_simplenn` since `vl_simplenn` has sufficient functionality now (from matconvnet-1.0-beta18)
 
 - **1.01** (29 Feb 2016)
     - Easier quick-start with `computeRepresentation`

@@ -20,7 +20,7 @@ function serialAllFeats(net, imPath, imageFns, outFn, varargin)
         'batchSize', 10 ...
         );
     opts= vl_argparse(opts, varargin);
-    simpleNnOpts= {'conserveMemory', true, 'disableDropout', true};
+    simpleNnOpts= {'conserveMemory', true, 'mode', 'test'};
     
     relja_display('serialAllFeats: Start');
     
@@ -56,16 +56,16 @@ function serialAllFeats(net, imPath, imageFns, outFn, varargin)
         end
         ims= cat(4, ims_{:});
         
-        ims(:,:,1,:)= ims(:,:,1,:) - net.normalization.averageImage(1,1,1);
-        ims(:,:,2,:)= ims(:,:,2,:) - net.normalization.averageImage(1,1,2);
-        ims(:,:,3,:)= ims(:,:,3,:) - net.normalization.averageImage(1,1,3);
-    
+        ims(:,:,1,:)= ims(:,:,1,:) - net.meta.normalization.averageImage(1,1,1);
+        ims(:,:,2,:)= ims(:,:,2,:) - net.meta.normalization.averageImage(1,1,2);
+        ims(:,:,3,:)= ims(:,:,3,:) - net.meta.normalization.averageImage(1,1,3);
+        
         if opts.useGPU
             ims= gpuArray(ims);
         end
         
         % ---------- extract features
-        res= relja_simplenn(net, ims, [], [], simpleNnOpts{:});
+        res= vl_simplenn(net, ims, [], [], simpleNnOpts{:});
         clear ims;
         feats= reshape( gather(res(end).x), [], thisNumIms );
         clear res;

@@ -35,7 +35,7 @@ function feats= computeRepresentation(net, im, varargin)
         'useGPU', true ...
         );
     opts= vl_argparse(opts, varargin);
-    simpleNnOpts= {'conserveMemory', true, 'disableDropout', true};
+    simpleNnOpts= {'conserveMemory', true, 'mode', 'test'};
     
     if opts.useGPU
         net= relja_simplenn_move(net, 'gpu');
@@ -47,16 +47,16 @@ function feats= computeRepresentation(net, im, varargin)
         im= cat(3,im,im,im);
     end
     
-    im(:,:,1)= im(:,:,1) - net.normalization.averageImage(1,1,1);
-    im(:,:,2)= im(:,:,2) - net.normalization.averageImage(1,1,2);
-    im(:,:,3)= im(:,:,3) - net.normalization.averageImage(1,1,3);
+    im(:,:,1)= im(:,:,1) - net.meta.normalization.averageImage(1,1,1);
+    im(:,:,2)= im(:,:,2) - net.meta.normalization.averageImage(1,1,2);
+    im(:,:,3)= im(:,:,3) - net.meta.normalization.averageImage(1,1,3);
     
     if opts.useGPU
         im= gpuArray(im);
     end
     
     % ---------- extract features
-    res= relja_simplenn(net, im, [], [], simpleNnOpts{:});
+    res= vl_simplenn(net, im, [], [], simpleNnOpts{:});
     clear im;
     feats= reshape( gather(res(end).x), [], 1 );
     clear res;

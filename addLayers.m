@@ -9,7 +9,7 @@ function net= addLayers(net, opts, dbTrain)
     if ismember('preL2', methodOpts)
         % normalize feature-wise
         net.layers{end+1}= struct('type', 'normalize', 'name', 'preL2', ...
-            'param', [2*D, 1e-12, 1, 0.5]);
+            'param', [2*D, 1e-12, 1, 0.5], 'precious', 0);
         methodOpts= removeOpt(methodOpts, 'preL2');
         doPreL2= true;
     else
@@ -18,19 +18,19 @@ function net= addLayers(net, opts, dbTrain)
     
     
     
-    if relja_startsWith(opts.method, 'max')
+    if ismember('max', methodOpts)
         methodOpts= removeOpt(methodOpts, 'max');
         net.layers{end+1}= layerTotalMaxPool('max:core');
         
         
         
-    elseif relja_startsWith(opts.method, 'avg')
+    elseif ismember('avg', methodOpts)
         methodOpts= removeOpt(methodOpts, 'avg');
         net.layers{end+1}= layerTotalAvgPool('avg:core');
         
         
         
-    elseif relja_startsWith(opts.method, 'vlad')
+    elseif any( ismember( {'vlad', 'vladv2'}, methodOpts) )
         
         if doPreL2
             L2str= '_preL2';
@@ -49,13 +49,13 @@ function net= addLayers(net, opts, dbTrain)
         
         load( trainDescFn, 'trainDescs');
         load( clstFn, 'clsts');
-        net.sessionID= sprintf('%s_%s', net.sessionID, dbTrain.name);
+        net.meta.sessionID= sprintf('%s_%s', net.meta.sessionID, dbTrain.name);
         
         
         
         % --- VLAD layer
         
-        if relja_startsWith(opts.method, 'vladv2')
+        if ismember('vladv2', methodOpts)
             methodOpts= removeOpt(methodOpts, 'vladv2');
             
             % set alpha for sparsity
@@ -65,7 +65,7 @@ function net= addLayers(net, opts, dbTrain)
             net.layers{end+1}= layerVLADv2('vlad:core');
             net.layers{end}= net.layers{end}.constructor({alpha*2*clsts, -alpha*sum(clsts.^2,1), -clsts});
             
-        elseif relja_startsWith(opts.method, 'vlad_') || strcmp(opts.method, 'vlad')
+        elseif ismember('vlad', methodOpts)
             % see comments on vladv2 vs vlad in the README_more.md
             
             methodOpts= removeOpt(methodOpts, 'vlad');
@@ -85,7 +85,7 @@ function net= addLayers(net, opts, dbTrain)
         if ismember('intra', methodOpts)
             % --- intra-normalization
             net.layers{end+1}= struct('type', 'normalize', 'name', 'vlad:intranorm', ...
-                'param', [2*D, 1e-12, 1, 0.5]);
+                'param', [2*D, 1e-12, 1, 0.5], 'precious', 0);
             methodOpts= removeOpt(methodOpts, 'intra');
         end
         
@@ -105,8 +105,8 @@ function net= addLayers(net, opts, dbTrain)
         error('Unsupported options (method=%s): %s', opts.method, strjoin(methodOpts, ', '));
     end
     
-    net.sessionID= sprintf('%s_%s', net.sessionID, opts.method);
-    net.epoch= 0;
+    net.meta.sessionID= sprintf('%s_%s', net.meta.sessionID, opts.method);
+    net.meta.epoch= 0;
     
 end
 

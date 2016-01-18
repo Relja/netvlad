@@ -17,8 +17,10 @@ function net= loadNet(netID, layerName)
     paths= localPaths();
     net= load( fullfile(paths.pretrainedCNNs, netname));
     
-    if isfield(net, 'classes')
-        net= rmfield(net, 'classes');
+    net= vl_simplenn_tidy(net); % matconvnet beta17 or newer is needed
+    
+    if isfield(net.meta, 'classes')
+        net.meta= rmfield(net.meta, 'classes');
     end
     
     if ~strcmp(layerName, '_relja_none_')
@@ -28,9 +30,10 @@ function net= loadNet(netID, layerName)
         layerNameStr= '';
     end
     net= relja_swapLayersForEfficiency(net);
-    net.netID= netID;
     
-    net.sessionID= sprintf('%s_offtheshelf%s', netID, layerNameStr);
-    net.epoch= 0;
+    net.meta.netID= netID;
+    
+    net.meta.sessionID= sprintf('%s_offtheshelf%s', netID, layerNameStr);
+    net.meta.epoch= 0;
     
 end
