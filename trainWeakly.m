@@ -20,6 +20,8 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
         'nEpoch', 30, ...
         'margin', 0.1, ...
         'excludeVeryHard', false, ...
+        'jitterFlip', false, ...
+        'jitterScale', [], ...
         'sessionID', [], ...
         'outPrefix', [], ...
         'dbCheckpoint0', [], ...
@@ -57,6 +59,10 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
     opts.dbTrainName= dbTrain.name;
     opts.dbValName= dbVal.name;
     if isempty(opts.fixLayers), opts.fixLayers= {}; end;
+    if ~isempty(opts.jitterScale)
+        im= imread([dbTrain.dbPath, dbTrain.dbImageFns{1}]);
+        origImS= min(size(im,1), size(im,2));
+    end
     
     
     
@@ -311,8 +317,12 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
                     strcat( dbTrain.dbPath, dbTrain.dbImageFns([posID; negIDs]) ) ];
                 thisNumIms= length(imageFns);
                 
-                
-                ims_= vl_imreadjpeg(imageFns, 'numThreads', opts.numThreads);
+                if isempty(opts.jitterScale)
+                    ims_= vl_imreadjpeg(imageFns, 'numThreads', opts.numThreads);
+                else
+                    sc= opts.jitterScale( randsample(length(opts.jitterScale), 1) );
+                    ims_= vl_imreadjpeg(imageFns, 'numThreads', opts.numThreads, 'Resize', round(sc*origImS));
+                end
                 
                 % fix non-colour images
                 for iIm= 1:thisNumIms
@@ -325,6 +335,10 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
                 ims(:,:,1,:)= ims(:,:,1,:) - net.meta.normalization.averageImage(1,1,1);
                 ims(:,:,2,:)= ims(:,:,2,:) - net.meta.normalization.averageImage(1,1,2);
                 ims(:,:,3,:)= ims(:,:,3,:) - net.meta.normalization.averageImage(1,1,3);
+                
+                if opts.jitterFlip && rand()>0.5
+                    ims= ims(end:-1:1,:,:,:);
+                end
                 
                 if opts.useGPU
                     ims= gpuArray(ims);
