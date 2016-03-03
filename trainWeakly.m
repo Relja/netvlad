@@ -337,7 +337,7 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
                 ims(:,:,3,:)= ims(:,:,3,:) - net.meta.normalization.averageImage(1,1,3);
                 
                 if opts.jitterFlip && rand()>0.5
-                    ims= ims(end:-1:1,:,:,:);
+                    ims= ims(:,end:-1:1,:,:);
                 end
                 
                 if opts.useGPU
