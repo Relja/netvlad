@@ -123,8 +123,7 @@ classdef layerVLAD
                 repmat( ...
                     reshape( sum(sum(assgn,1),2), [l.K, 1, batchSize] ), ...
                     [1, l.D, 1] ), ...
-                3 ), [1, 1, l.D, l.K] );
-            
+                3 )', [1, 1, l.D, l.K] );
         end
         
         function objStruct= saveobj(obj)

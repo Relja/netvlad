@@ -1,6 +1,6 @@
 # NetVLAD: CNN architecture for weakly supervised place recognition
 
-> Version 1.02 (29 Feb 2016)
+> Version 1.03 (04 Mar 2016)
 >
 >- If you used NetVLAD v1.01 or below, you need to upgrade your models using `relja_simplenn_tidy`
 
@@ -154,6 +154,9 @@ More information is available `README_more.md` and in comments in the code itsel
 
 
 # Changes
+
+- **1.03** (04 Mar 2016)
+    - Fixed a bug in NetVLAD backprop
 
 - **1.02** (29 Feb 2016)
     - Adapts the code to account for major changes in matconvnet-1.0-beta17's SimpleNN
