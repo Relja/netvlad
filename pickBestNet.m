@@ -6,7 +6,10 @@ function [bestEpoch, bestNet]= pickBestNet(sessionID, N, verbose)
     outFnLatest= sprintf('%s%s_latest.mat', paths.outPrefix, sessionID);
     res= load( outFnLatest, 'obj', 'opts', 'auxData');
     
-    [~, bestEpoch]= max(res.obj.val.recall(res.opts.recallNs==N,:));
+    if res.opts.epochTestFrequency~=1
+        error('This code assumes epochTestFrequency==1 (it is %d)', res.opts.epochTestFrequency);
+    end
+    bestEpoch= getBestEpoch(res.obj.val.recall, res.opts.recallNs, N);
     assert(~isempty(bestEpoch));
     
     if verbose>0
