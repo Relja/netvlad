@@ -63,7 +63,7 @@ else
     strMode= 'full';
 end
 
-dbTest= dbVGG('ox5k', recFieldSize);
+dbTest= dbVGG(dsetName, recFieldSize);
 
 % Compute db image representations (images have different resolutions so batchSize is constrained to 1)
 dbFeatFn= sprintf('%s%s_%s_db.bin', paths.outPrefix, netID, dbTest.name);
