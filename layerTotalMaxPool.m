@@ -1,4 +1,4 @@
-classdef layerTotalMaxPool < handle
+classdef layerTotalMaxPool
     
     properties
         type= 'custom'

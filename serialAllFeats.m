@@ -24,6 +24,8 @@ function serialAllFeats(net, imPath, imageFns, outFn, varargin)
     
     relja_display('serialAllFeats: Start');
     
+    net= netPrepareForTest(net);
+    
     if opts.useGPU
         net= relja_simplenn_move(net, 'gpu');
     else

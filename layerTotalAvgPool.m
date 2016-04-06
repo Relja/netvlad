@@ -1,4 +1,4 @@
-classdef layerTotalAvgPool < handle
+classdef layerTotalAvgPool
     
     properties
         type= 'custom'

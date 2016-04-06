@@ -1,4 +1,4 @@
-classdef layerWholeL2Normalize < handle
+classdef layerWholeL2Normalize
     
     properties
         type= 'custom'

@@ -37,6 +37,8 @@ function feats= computeRepresentation(net, im, varargin)
     opts= vl_argparse(opts, varargin);
     simpleNnOpts= {'conserveMemory', true, 'mode', 'test'};
     
+    net= netPrepareForTest(net);
+    
     if opts.useGPU
         net= relja_simplenn_move(net, 'gpu');
     else

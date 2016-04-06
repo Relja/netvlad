@@ -109,9 +109,6 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
         
         display(opts);
         
-        % --- Prepare for train
-        net= netPrepareForTrain(net, opts.backPropToLayer);
-        
         
         
         % ----- Init
@@ -157,6 +154,9 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
         display(opts);
         
     end
+    
+    % --- Prepare for train
+    net= netPrepareForTrain(net, opts.backPropToLayer);
     
     if opts.useGPU
         net= relja_simplenn_move(net, 'gpu');

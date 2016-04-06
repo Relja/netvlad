@@ -12,6 +12,7 @@ function saveNet(net, obj, opts, auxData, ID, description, verbose);
     outFnLatest= sprintf('%s%s_%s.mat', opts.outPrefix, opts.sessionID, 'latest');
     save( outFnCurrent, 'net', 'obj', 'opts', 'auxData', '-v7.3');
     
+    net= netPrepareForTest(net);
     relja_netSave(net, outFnCurrent);
     
     copyfile(outFnCurrent, outFnLatest);
