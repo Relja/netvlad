@@ -24,7 +24,7 @@ classdef layerWholeL2Normalize
             xr= reshape(x, [], batchSize);
             dzdy= reshape(dzdy, [], batchSize);
             xNorm= sqrt(sum(xr.^2,1)) + 1e-12;
-            dim= size(xr, 1);
+            % dim= size(xr, 1);
             
             % D: d(yi)/d(xj)= (i==j)/xnorm - xi*xj / xnorm^3
             % where xnorm= sqrt(sum(x.^2))
@@ -57,7 +57,6 @@ classdef layerWholeL2Normalize
         end
         
         function res0= backward(p, res0, res1)
-            % res0.aux= struct('dzdy', res1.dzdx);
             res0.dzdx= p.backward_(res0.x, res1.dzdx);
         end
     

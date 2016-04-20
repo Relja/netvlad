@@ -119,14 +119,6 @@ Similarly, to get recall for sunset and nighttime queries together:
 
 There are two versions of the NetVLAD layer in the code: `layerVLAD` and `layerVLADv2` (they are very similar - do the `diff`). `layerVLADv2` follows the paper exactly, while `layerVLAD` is a version where we fix $b_k$ parameters (i.e. they are not updated during training). Assuming that input descriptors are L2-normalized (**don't use `layerVLAD`otherwise**!!), which seems to anyway work better with VLAD and NetVLAD when combined with conv5 descriptors, the assignment into clusters can be done more simply by scalar product (i.e. initially $w_k$=L2-normalized  cluster centre, $b_k$=0). This version seems to converge faster, so it is the version we use in all our experiments. It might well be that `layerVLADv2` can get you better results - it should work at least as well as `layerVLAD`, unless you are overfitting too much, as it has the capacity to do everything `layerVLAD` can do, and more!
 
-#### Reproducibility
-
-You should be able to reproduce the results of our paper completely using the models we published online.
-
-It seems that the training is not fully reproducible, as in - running it multiple times might give different results. However, I got similarly good results every time I trained the networks, so this is not a problem, but it's worth knowing about it. I think I even got slightly different outputs when running the forward pass using the same network, which would explain the lack of reproducability. I'm not completely sure why is this the case, my best guess after some testing is that it is due to numerical differences when running on GPU. Namely, it seems that one can get fully reproducible results if all is done on the CPU, but once GPU is used, it seems that reproducibility goes away. The cause could be the parallel nature of GPU computations, e.g. different summation order can lead to different results due to the way floats are represented in finite memory. So, I don't think it's the problem with my code but it is an inherent property of GPUs.
-
-As a side note - there is no magic in the number 43 I use for random seeds, I just tend to use 43 across all my code for consistency (e.g. I don't have to wonder what random seed I used 3 years ago for an experiment).
-
 #### Off-the-shelf networks
 
 You can download off-the-shelf networks from our [project page](http://www.di.ens.fr/willow/research/netvlad/), or you can construct them yourselves by 1) downloading the original off-the-shelf networks from the [website](http://www.vlfeat.org/matconvnet/), and 2) adding the required pooling layers.

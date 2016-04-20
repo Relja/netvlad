@@ -3,7 +3,7 @@ function net= netPrepareForTrain(net, backPropToLayer)
     
     nLayers= numel(net.layers);
     for i= 1:nLayers
-        if isFieldOrProp(net.layers{i}, 'weights')
+        if i>=backPropToLayer && isFieldOrProp(net.layers{i}, 'weights')
             J= numel(net.layers{i}.weights);
             for j= 1:J
                 net.layers{i}.momentum{j}= zeros(size(net.layers{i}.weights{j}), 'single');

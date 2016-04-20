@@ -297,13 +297,13 @@ function sessionID= trainWeakly(dbTrain, dbVal, varargin)
                 end
                 nViolatingNegs= sum(violatingNegs);
                 nVeryHardNegs= sum(veryHardNegs);
-                loss= sum( max(dPos + opts.margin - dsSq, 0) );
                 if opts.printLoss
+                    loss= sum( max(dPos + opts.margin - dsSq, 0) );
                     relja_display('%s loss= %.4f, #violate= %d, #vhard= %d, (qID=%d)', ...
                         opts.sessionID, loss, nViolatingNegs, nVeryHardNegs, qID);
                 end
                 
-                if nViolatingNegs==0, continue; end
+                if nViolatingNegs==0, losses(end+1)= 0; continue; end
                 negIDs= negIDs(violatingNegs);
                 dsSq= dsSq(violatingNegs);
                 if nViolatingNegs>opts.nNegCap
