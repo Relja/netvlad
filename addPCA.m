@@ -82,4 +82,6 @@ function net= addPCA(net, dbTrain, varargin)
     net.layers{end+1}= layerWholeL2Normalize('finalL2');
     net.meta.sessionID= sprintf('%s_%s', net.meta.sessionID, pcaStr);
     
+    % account for future changes in MatConvNet
+    net = relja_simplenn_tidy(net);
 end
