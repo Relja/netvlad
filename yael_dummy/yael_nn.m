@@ -1,7 +1,7 @@
 function [ids, dis]= yael_nn(v, q, k, distype)
     assert( nargin<4 || distype==2 );
     if nargin<3, k= 1; end
-    assert(k<size(v,2));
+    assert(k<=size(v,2));
     
     ids= zeros(k, size(q,2), 'int32');
     dis= zeros(k, size(q,2), 'single');
