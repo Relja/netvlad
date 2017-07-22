@@ -7,7 +7,7 @@ function [ids, dis]= yael_nn(v, q, k, distype)
     dis= zeros(k, size(q,2), 'single');
     
     for iVec= 1:size(q,2)
-        ds= sum( bsxfun(@minus, v, q(:,1)).^2, 1 );
+        ds= sum( bsxfun(@minus, v, q(:,iVec)).^2, 1 );
         [ds, inds]= sort(ds);
         dis(:,iVec)= ds(1:k);
         ids(:,iVec)= inds(1:k);
